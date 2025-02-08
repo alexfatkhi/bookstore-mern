@@ -1,0 +1,2 @@
+- npm run dev --> pada bagian backend
+- lalu buka http://localhost:5555/ di browser
