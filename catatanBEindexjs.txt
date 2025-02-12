@@ -1,0 +1,180 @@
+===****** PENJELASAN index.js ******===
+
+- "const app = express();" 
+  // adalah fungsi yang digunakan untuk membuat instance dari aplikasi Express. Dengan kata lain, ini adalah langkah pertama untuk membuat server menggunakan Express.js.
+  // express() adalah fungsi utama dari Express.js yang digunakan untuk membuat aplikasi Express baru. Objek app yang dihasilkan digunakan untuk:
+  //     Mendaftarkan route (GET, POST, PUT, DELETE).
+  //     Menambahkan middleware (seperti express.json(), cors(), dll).
+  //     Menghubungkan database dan mengatur konfigurasi lainnya.
+  //     Menjalankan server HTTP.
+  ✅ const app = express(); hanya membuat aplikasi Express, tetapi belum menjalankan server.
+  ✅ Agar server berjalan, harus ada app.listen(PORT).
+
+- "app.use(express.json());"
+   🔶 Jika kita hanya menulis express, tanpa memanggilnya dengan express(), hasilnya adalah objek/module Express, bukan aplikasi Express.
+   🔶 [Function: createApplication] {
+  application: { ... },
+  request: { ... },
+  response: { ... },
+  Router: [Function: Router],
+  json: [Function: json],
+  urlencoded: [Function: urlencoded],
+  static: [Function: static],
+  ...}
+   🔶 🧐 Jadi, apa sebenarnya isi dari json: [Function: json]?
+     Ini berarti Express memiliki fungsi bawaan bernama json(). Fungsi ini adalah middleware yang digunakan untuk parsing request body dalam format JSON.
+
+- "app.use(express.json());"
+   🔶 Di Express.js, app.use() digunakan untuk menambahkan middleware ke dalam aplikasi. 
+     Middleware adalah fungsi yang berjalan sebelum request diproses oleh route handler atau untuk memodifikasi response sebelum dikirim ke client.
+
+     📌 Penjelasan Detail:
+
+    Request dikirim dari client ke server.
+    Express menerima request dan memproses middleware yang ditentukan dalam app.use().
+    Jika semua middleware selesai, request diteruskan ke route handler (app.get(), app.post(), dll.).
+    Route handler memproses request dan mengembalikan response ke client.
+
+- "app.use(cors());"
+   🔶 CORS adalah aturan keamanan di browser yang membatasi request antar domain berbeda.
+   🔶 Tanpa cors(), request dari frontend ke backend berbeda origin bisa diblokir.
+   🔶 misalnya React di http://localhost:3000 , ingin mengambil data dari backend Express di http://localhost:5000, 
+      browser akan memblokir request karena perbedaan origin (Cross-Origin Request).
+   🔶 Dengan app.use(cors()), kita mengizinkan semua domain mengakses API.
+   🔶 Kita juga bisa mengatur cors() agar hanya mengizinkan domain tertentu.
+
+- "app.get("/", (request, response) => {
+  console.log(request);
+  console.log("okeeeee mantaapppppp");
+  return response.status(234).send("Welcome to MERN Stack Tutorial"); 
+  });"
+   📌 Struktur dasar app.get() dalam Express.js:
+   app.get(path, callback)
+   🔶 Misalnya kita membuka browser dan mengetik http://localhost:5555/.
+   Browser mengirim GET request ke server Express yang berjalan di PORT = 5555
+   🚀 Jadi, app.get("/") ini bertindak sebagai endpoint utama untuk menyambut user saat mereka mengakses server!
+
+
+   ✅ Tidak masalah jika app.get("/") didefinisikan sebelum app.listen(PORT).
+   ✅ Server Express tetap bisa menerima request ke /, tetapi hanya setelah app.listen(PORT) dipanggil.
+   ✅ Saat kita membuka http://localhost:PORT/, server Express sudah berjalan karena app.listen(PORT) sudah dieksekusi setelah koneksi database berhasil.
+
+  🔹 1️⃣ Urutan Eksekusi Kode
+
+    Ketika kita menjalankan node index.js, urutan eksekusinya adalah:
+    (1) Express Membaca Kode
+
+    ✅ const app = express(); → Membuat aplikasi Express.
+    ✅ app.get("/") → Mendaftarkan route GET / ke dalam aplikasi.
+
+    ❌ Tapi server belum bisa menerima request karena belum ada app.listen(PORT) yang dijalankan.
+
+    ✅ app.get("/") hanya mendeklarasikan route, Express belum menangani request sebelum app.listen(PORT).
+    ✅ Server mulai berjalan setelah app.listen(PORT) dipanggil setelah koneksi database berhasil.
+    ✅ User bisa mengakses http://localhost:PORT/ setelah server aktif.
+    ✅ Menulis app.get("/") sebelum app.listen(PORT) adalah praktik yang umum digunakan dalam Express.js. 🚀
+
+
+    📌 Bukti Express "Mendata Route Dulu" Sebelum Server Berjalan
+       Kita bisa membuktikan bahwa Express hanya menyimpan route dulu tanpa menjalankannya dengan contoh ini:
+
+          import express from "express";
+
+          const app = express();
+
+          console.log("1️⃣ Server dimulai, mendata route...");
+
+          app.get("/", (req, res) => {
+            console.log("4️⃣ Route '/' dijalankan!");
+            res.send("Hello, World!");
+          });
+
+          console.log("2️⃣ Route '/' sudah didaftarkan, tapi belum berjalan!");
+
+          app.listen(5000, () => {
+            console.log("3️⃣ Server sekarang mendengarkan di port 5000!");
+          });
+
+        📌 Jika kita menjalankan node index.js, urutan eksekusinya di terminal adalah:
+
+        1️⃣ Server dimulai, mendata route...
+        2️⃣ Route '/' sudah didaftarkan, tapi belum berjalan!
+        3️⃣ Server sekarang mendengarkan di port 5000!
+
+        ✅ Ini membuktikan bahwa route sudah didaftarkan, tetapi belum berjalan.
+
+        📌 Ketika kita membuka browser di http://localhost:5000/, terminal akan menampilkan:
+
+        4️⃣ Route '/' dijalankan!
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+  Penjelasan app.use("/books", booksRoute); dalam Express.js
+
+  📌 Fungsi app.use("/books", booksRoute);:
+  👉 Menghubungkan semua route di booksRoute.js ke dalam aplikasi utama Express.
+  👉 Semua route dalam booksRoute.js akan memiliki prefix /books di aplikasi utama.
+  👉 Eksekusinya terjadi sebelum server dijalankan dan sebelum ada request dari client.
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+Urutan Eksekusi Kode Express.js Secara Detail
+🟢 1️⃣ Mengimpor Semua Modul yang Diperlukan
+
+    Express, Mongoose, middleware (cors), dan konfigurasi (PORT, mongoDBURL) dimuat ke dalam aplikasi.
+    Router booksRoute.js juga diimpor untuk digunakan dalam aplikasi utama.
+
+🟢 2️⃣ Membuat Instance Aplikasi Express
+
+    Express diinisialisasi dengan express(), menghasilkan objek app yang digunakan untuk menangani request dan response.
+    Namun, server belum berjalan karena belum ada pemanggilan app.listen(PORT).
+
+🟢 3️⃣ Menambahkan Middleware
+
+    express.json() ditambahkan untuk memastikan Express bisa membaca request body dalam format JSON.
+    cors() ditambahkan untuk mengizinkan request dari domain lain (Cross-Origin Resource Sharing).
+    Middleware ini hanya didaftarkan, tetapi belum dijalankan sampai ada request yang masuk ke server.
+
+🟢 4️⃣ Mendaftarkan Route Utama /
+
+    Route GET / didaftarkan dalam aplikasi Express.
+    Saat ini, route belum berjalan, tetapi Express menyimpannya untuk nanti digunakan saat ada request ke /.
+
+🟢 5️⃣ Mendaftarkan Route /books dari booksRoute.js
+
+    Semua route dalam booksRoute.js dihubungkan ke aplikasi utama dengan prefix /books.
+    Misalnya, jika di dalam booksRoute.js ada route /, maka dalam aplikasi utama, route tersebut akan diakses sebagai /books.
+    Sama seperti route /, route /books juga hanya didaftarkan, belum berjalan sampai ada request.
+
+🟢 6️⃣ Mencoba Koneksi ke Database MongoDB
+
+    Mongoose mencoba menghubungkan aplikasi ke database MongoDB menggunakan mongoDBURL.
+    Koneksi ini berjalan secara asinkron, artinya Express tetap bisa menjalankan kode lainnya sambil menunggu koneksi berhasil atau gagal.
+
+🟢 7️⃣ Jika Koneksi Berhasil, Server Mulai Berjalan di PORT
+
+    Jika koneksi database berhasil, Express mulai mendengarkan request di PORT.
+    Pada titik ini, server aktif dan bisa menerima request dari client.
+    Middleware dan route yang sudah didaftarkan mulai berfungsi, sehingga setiap request yang masuk akan diproses oleh Express.
+
+🟢 8️⃣ Jika Koneksi Gagal, Menampilkan Error dan Server Tidak Berjalan
+
+    Jika database gagal terkoneksi, Express tidak menjalankan app.listen(PORT), sehingga server tidak berjalan.
+    Error ditampilkan di terminal sebagai log debugging.
+
+🟢 9️⃣ Setelah Server Berjalan, Middleware dan Route yang Sudah Didaftarkan Akan Mulai Bekerja
+
+    Ketika ada request dari client (browser, Postman, atau frontend lain), Express akan:
+        Memeriksa middleware yang sudah didaftarkan.
+            Jika request mengandung JSON, express.json() akan memprosesnya sebelum diteruskan ke route yang sesuai.
+            Jika request datang dari domain lain, cors() akan memastikan apakah request diizinkan.
+        Mengecek daftar route yang telah didaftarkan.
+            Jika request adalah GET /, Express menjalankan fungsi callback dalam app.get("/").
+            Jika request adalah GET /books, Express meneruskan ke router booksRoute.js dan menjalankan fungsi yang sesuai.
+        Mengembalikan response ke client.
+            Setelah request diproses, Express mengirim response ke client, yang bisa berupa teks, JSON, atau status tertentu.
+
+🟢 1️⃣0️⃣ Siklus Berulang Setiap Ada Request
+
+    Selama server masih berjalan, setiap request yang datang akan melalui middleware dan route yang sudah terdaftar.
+    Express terus menerima request, memprosesnya, dan mengembalikan response, hingga server dihentikan. 🚀

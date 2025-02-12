@@ -7,7 +7,7 @@ import Spinner from "../components/Spinner";
 function ShowBook() {
   const [book, setBook] = useState({});
   const [loading, setLoading] = useState(false);
-  const { id } = useParams();
+  const { id } = useParams(); //useParams() adalah hook dari React Router yang digunakan untuk mengambil parameter dinamis dari URL. LIHAT readme.md
 
   useEffect(() => {
     setLoading(true);

@@ -8,7 +8,8 @@ import DeleteBooks from "./pages/DeleteBooks";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* Halaman utama akan dirender saat user membuka / */}
+      <Route path="/" element={<Home />} /> 
       <Route path="/books/create" element={<CreateBooks />} />
       <Route path="/books/details/:id" element={<ShowBook />} />
       <Route path="/books/edit/:id" element={<EditBooks />} />
