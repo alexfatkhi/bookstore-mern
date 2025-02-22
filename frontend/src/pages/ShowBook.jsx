@@ -7,7 +7,7 @@ import Spinner from "../components/Spinner";
 function ShowBook() {
   const [book, setBook] = useState({});
   const [loading, setLoading] = useState(false);
-  const { id } = useParams(); //useParams() adalah hook dari React Router yang digunakan untuk mengambil parameter dinamis dari URL. LIHAT readme.md
+  const { id } = useParams();
 
   useEffect(() => {
     setLoading(true);
@@ -21,7 +21,7 @@ function ShowBook() {
         console.log(error);
         setLoading(false);
       });
-  }, []);
+  }, [id]);
 
   return (
     <div className="p-4">
@@ -31,6 +31,15 @@ function ShowBook() {
         <Spinner />
       ) : (
         <div className="flex flex-col border-2 border-sky-400 rounded-xl w-fit p-4">
+          {book.image && (
+            <div className="flex justify-center my-4">
+              <img
+                src={book.image}
+                alt={book.title}
+                className="w-40 h-60 object-cover rounded-lg shadow-md"
+              />
+            </div>
+          )}
           <div className="my-4">
             <span className="text-xl mr-4 text-gray-500">Id</span>
             <span>{book._id}</span>
@@ -49,7 +58,7 @@ function ShowBook() {
           </div>
           <div className="my-4">
             <span className="text-xl mr-4 text-gray-500">Create Time</span>
-            <span>{new Date(book.createdAt).toString()} </span>
+            <span>{new Date(book.createdAt).toString()}</span>
           </div>
           <div className="my-4">
             <span className="text-xl mr-4 text-gray-500">Last Update Time</span>

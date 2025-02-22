@@ -1,4 +1,15 @@
-export const PORT = 5555;
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
 
-export const mongoDBURL = 'mongodb+srv://tokoantik100:I0EAvcpZqEp2uakG@book-store-mern.rldjl.mongodb.net/?retryWrites=true&w=majority&appName=Book-Store-MERN'
+dotenv.config();
 
+export const PORT = process.env.PORT || 5555;
+export const mongoDBURL = process.env.MONGODB_URL;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export default cloudinary;

@@ -1,57 +1,117 @@
 import express from "express";
 import { Book } from "../models/bookModel.js";
+import cloudinary from "../config.js";
+import multer from "multer";
+import fs from "fs";
 
-const router = express.Router(); //express.Router() tidak membuat aplikasi baru, tetapi hanya membuat objek router yang bisa digunakan untuk menangani rute secara modular.
+const router = express.Router();
 
-// Route for Save a new Book
-router.post("/", async (request, response) => {
+// Setup multer untuk upload file sementara
+const upload = multer({ dest: "uploads/" });
+
+// ✅ Route untuk Menambah Buku dengan Gambar
+router.post("/", upload.single("image"), async (request, response) => {
   try {
     if (
       !request.body.title ||
       !request.body.author ||
       !request.body.publishYear
     ) {
-      return response.status(400).send({
-        message: "send all required fields: title, author, publishYear",
-      });
+      return response
+        .status(400)
+        .send({
+          message: "Send all required fields: title, author, publishYear",
+        });
     }
 
-    const newBook = {
+    // Upload ke Cloudinary jika ada gambar
+    let imageUrl = "";
+    if (request.file) {
+      const result = await cloudinary.uploader.upload(request.file.path, {
+        folder: "bookstore",
+      });
+      console.log("Cloudinary Upload Result:", result.secure_url); // ✅ Debugging
+      imageUrl = result.secure_url;
+      fs.unlinkSync(request.file.path); // Hapus file sementara
+    }
+
+    const newBook = await Book.create({
+      title: request.body.title,
+      author: request.body.author,
+      publishYear: request.body.publishYear,
+      image: imageUrl, // ✅ Simpan URL gambar ke database
+    });
+
+    return response.status(201).send(newBook);
+  } catch (error) {
+    console.log(error.message);
+    response.status(500).send({ message: error.message });
+  }
+});
+
+// ✅ Route untuk Mengupdate Buku (Termasuk Gambar)
+router.put("/:id", upload.single("image"), async (request, response) => {
+  try {
+    if (
+      !request.body.title ||
+      !request.body.author ||
+      !request.body.publishYear
+    ) {
+      return response
+        .status(400)
+        .send({
+          message: "Send all required fields: title, author, publishYear",
+        });
+    }
+
+    const { id } = request.params;
+    let updateData = {
       title: request.body.title,
       author: request.body.author,
       publishYear: request.body.publishYear,
     };
 
-    const book = await Book.create(newBook);
+    // Upload ke Cloudinary jika ada gambar baru
+    if (request.file) {
+      const result = await cloudinary.uploader.upload(request.file.path, {
+        folder: "bookstore",
+      });
+      console.log("Updated Image URL:", result.secure_url); // ✅ Debugging
+      updateData.image = result.secure_url;
+      fs.unlinkSync(request.file.path); // Hapus file sementara
+    }
 
-    return response.status(201).send(book);
+    const updatedBook = await Book.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    if (!updatedBook) {
+      return response.status(404).json({ message: "Book not found" });
+    }
+
+    return response.status(200).send(updatedBook);
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
   }
 });
 
-//Route for Get All Books from database
+// ✅ Route untuk Mengambil Semua Buku
 router.get("/", async (request, response) => {
   try {
     const books = await Book.find({});
-    return response.status(200).json({
-      count: books.length,
-      data: books,
-    });
+    return response.status(200).json({ count: books.length, data: books });
   } catch (error) {
     console.log(error.message);
     response.status(500).send({ message: error.message });
   }
 });
 
-//Route for Get one Book from database by id
+// ✅ Route untuk Mengambil Satu Buku Berdasarkan ID
 router.get("/:id", async (request, response) => {
   try {
     const { id } = request.params;
-
     const book = await Book.findById(id);
-
     return response.status(200).json(book);
   } catch (error) {
     console.log(error.message);
@@ -59,35 +119,7 @@ router.get("/:id", async (request, response) => {
   }
 });
 
-//Route for Update a Book
-router.put("/:id", async (request, response) => {
-  try {
-    if (
-      !request.body.title ||
-      !request.body.author ||
-      !request.body.publishYear
-    ) {
-      return response.status(400).send({
-        message: "Send all required fields: title, author, publishYear",
-      });
-    }
-
-    const { id } = request.params;
-
-    const result = await Book.findByIdAndUpdate(id, request.body);
-
-    if (!result) {
-      return response.status(404).json({ message: "Book not found" });
-    }
-
-    return response.status(200).send({ message: "Book update successfully" });
-  } catch (error) {
-    console.log(error.message);
-    response.status(500).send({ message: error.message });
-  }
-});
-
-//Route for delete a book
+// ✅ Route untuk Menghapus Buku
 router.delete("/:id", async (request, response) => {
   try {
     const { id } = request.params;

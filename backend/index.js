@@ -1,53 +1,42 @@
-import express, { request, response } from "express"; //express: Mengimpor Express.js untuk membuat server HTTP.
-import { PORT, mongoDBURL } from "./config.js"; //Mengimpor nilai PORT dari file config.js
+import express from "express";
 import mongoose from "mongoose";
-import { Book } from "./models/bookModel.js";
-import booksRoute from "./routes/booksRoute.js"; //Apapun yang kamu tulis setelah export default akan diambil ketika diimpor di file lain. bookstore itu router. bebas nulisnya, jadi bisa pilih tulis bookstore
 import cors from "cors";
+import dotenv from "dotenv";
 
-const app = express(); // adalah fungsi yang digunakan untuk membuat instance dari aplikasi Express. Dengan kata lain, ini adalah langkah pertama untuk membuat server menggunakan Express.js.
-// express() adalah fungsi utama dari Express.js yang digunakan untuk membuat aplikasi Express baru. Objek app yang dihasilkan digunakan untuk:
-//     Mendaftarkan route (GET, POST, PUT, DELETE).
-//     Menambahkan middleware (seperti express.json(), cors(), dll).
-//     Menghubungkan database dan mengatur konfigurasi lainnya.
-//     Menjalankan server HTTP.
+// Load environment variables
+dotenv.config();
 
-// Middleware for parsing request body
+import booksRoute from "./routes/booksRoute.js";
+
+const app = express();
+
+// Get PORT and MongoDB URI from .env
+const PORT = process.env.PORT || 5000;
+const mongoDBURL = process.env.MONGO_URI;
+
+// Middleware
 app.use(express.json());
-
-// Middleware for handling CORS POLICY
-// Option 1: Allow All Origin with default of cors(*)
 app.use(cors());
-// Option 2: Allow Custom Origins
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000",
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type"],
-//   })
-// );
 
-app.get("/", (request, response) => {
-  console.log(request);
-  console.log("okeeeee mantaapppppp");
-  return response.status(234).send("Welcome to MERN Stack Tutorial"); //status 234 akan muncul di bagian browser -> network
+// Test route
+app.get("/", (req, res) => {
+  console.log("Server is running...");
+  res.status(200).send("Welcome to MERN Stack Tutorial");
 });
 
+// Use Books Route
 app.use("/books", booksRoute);
-//By writing app.use("/books", booksRoute);, you are telling Express: "Hey, whenever a request starts with /books, pass it to booksRoute."
-// 👉 Baris kode ini berarti semua rute dalam booksRoute.js akan memiliki prefix /books.
-// Jadi, kalau di booksRoute.js ada rute /, maka di aplikasi utama akan menjadi /books.
-// 👉 disini index.js menghubungkan booksRoute.js
-// 👉 membuat aliran eksekusi berjalan dari index.js ke booksRoute.js.
 
+// Connect to MongoDB
 mongoose
-  .connect(mongoDBURL)
+  .connect(mongoDBURL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    console.log("App connected to database");
+    console.log("✅ Connected to MongoDB");
     app.listen(PORT, () => {
-      console.log(`App is listening to port: ${PORT}`);
+      console.log(`🚀 Server running on port: ${PORT}`);
     });
   })
   .catch((error) => {
-    console.log(error, "========================================");
+    console.error("❌ MongoDB connection error:", error);
+    process.exit(1); // Exit the process if DB connection fails
   });
